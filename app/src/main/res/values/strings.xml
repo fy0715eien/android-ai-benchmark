@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">AI Benchmark</string>
+    <string name="loading_models">Loading models</string>
+    <string name="model_extraction_failed">Failed to extract model.</string>
+    <string name="model_name">Model Name</string>
+    <string name="model_dimensions">Dimensions</string>
+    <string name="model_load_failed">Failed to load model</string>
+    <string name="output_layers">Output Layers</string>
+    <string name="loading_network">Loading Network</string>
+    <string name="model_not_loaded">Model not yet loaded!</string>
+    <string name="classification_failed">Classification failed.</string>
+    <string name="model_version">Model Version</string>
+    <string name="snpe_version">SNPE version: %1$s</string>
+    <string name="button_speed_test">Speed test</string>
+    <string name="button_speed_test_with_accuracy">Speed test with accuracy</string>
+    <string name="predict_labels">Predict labels: </string>
+    <string name="expected_label">Expected label: </string>
+    <string name="top_1_acc">Top 1 accuracy: </string>
+    <string name="top_5_acc">Top 5 accuracy: </string>
+</resources>
