@@ -1,11 +1,12 @@
 package com.example.fy071.classifier.ui;
 
 
-import android.app.Application;
-import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -13,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -26,6 +26,7 @@ import com.qualcomm.qti.snpe.NeuralNetwork;
 import com.qualcomm.qti.snpe.SNPE;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.example.fy071.classifier.util.LayerNameHelper.INPUT_LAYER;
@@ -36,7 +37,6 @@ public class ModelOverviewFragment extends Fragment {
     public static final String EXTRA_MODEL = "model";
 
     enum MenuRuntimeGroup {
-
         SelectCpuRuntime(NeuralNetwork.Runtime.CPU),
         SelectGpuRuntime(NeuralNetwork.Runtime.GPU),
         SelectDspRuntime(NeuralNetwork.Runtime.DSP);
@@ -72,7 +72,7 @@ public class ModelOverviewFragment extends Fragment {
 
     private TextView mModelVersionText;
 
-    private Button mTestButton;
+    private FloatingActionButton mTestButton;
 
     public static ModelOverviewFragment create(final Model model) {
         final ModelOverviewFragment fragment = new ModelOverviewFragment();
@@ -83,12 +83,12 @@ public class ModelOverviewFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_model, container, false);
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mImageGrid = view.findViewById(R.id.model_image_grid);
         mImageGridAdapter = new ModelImagesAdapter(getActivity());
@@ -119,8 +119,8 @@ public class ModelOverviewFragment extends Fragment {
         mClassificationText = view.findViewById(R.id.model_overview_classification_text);
         mExpectedText = view.findViewById(R.id.model_overview_expected_text);
         mTop1AccuracyText = view.findViewById(R.id.model_overview_top1_accuracy_text);
-        mTop5AccuracyText=view.findViewById(R.id.model_overview_top5_accuracy_text);
-        mProgressBar=view.findViewById(R.id.progressBar);
+        mTop5AccuracyText = view.findViewById(R.id.model_overview_top5_accuracy_text);
+        mProgressBar = view.findViewById(R.id.progressBar);
     }
 
     @Override
@@ -128,14 +128,13 @@ public class ModelOverviewFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         setHasOptionsMenu(true);
         final Model model = getArguments().getParcelable(EXTRA_MODEL);
-        mController = new ModelOverviewFragmentController((Application) getActivity().getApplicationContext(), model);
+        mController = new ModelOverviewFragmentController(getActivity().getApplication(), model);
     }
 
     @Override
     public void onCreateOptionsMenu(android.view.Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        final SNPE.NeuralNetworkBuilder builder = new SNPE.NeuralNetworkBuilder(
-                (Application) (getActivity().getApplicationContext()));
+        final SNPE.NeuralNetworkBuilder builder = new SNPE.NeuralNetworkBuilder(getActivity().getApplication());
         for (MenuRuntimeGroup item : MenuRuntimeGroup.values()) {
             if (builder.isRuntimeSupported(item.runtime)) {
                 menu.add(MenuRuntimeGroup.ID, item.ordinal(), 0, item.runtime.name());
@@ -190,9 +189,11 @@ public class ModelOverviewFragment extends Fragment {
     }
 
     public void setClassificationResult(String[] classificationResult) {
-        if (classificationResult.length > 0) {
-            mClassificationText.setText(String.format("%s: %s", classificationResult[0], classificationResult[1]));
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < classificationResult.length; i += 2) {
+            result.append(String.format("%s: %s", classificationResult[i], classificationResult[i + 1])).append("\n");
         }
+        mClassificationText.setText(result);
         mClassificationText.setVisibility(View.VISIBLE);
     }
 
@@ -201,12 +202,12 @@ public class ModelOverviewFragment extends Fragment {
     }
 
     public void setTop1Accuracy(double accuracy) {
-        mTop1AccuracyText.setText(String.format("%.2f",accuracy));
+        mTop1AccuracyText.setText(String.format(new Locale("eng"), "%.3f", accuracy));
         mTop1AccuracyText.setVisibility(View.VISIBLE);
     }
 
     public void setTop5Accuracy(double accuracy) {
-        mTop5AccuracyText.setText(String.format("%.2f",accuracy));
+        mTop5AccuracyText.setText(String.format(new Locale("eng"), "%.3f", accuracy));
         mTop5AccuracyText.setVisibility(View.VISIBLE);
     }
 
@@ -221,6 +222,12 @@ public class ModelOverviewFragment extends Fragment {
 
     public void displayClassificationFailed() {
         Toast.makeText(getActivity(), R.string.classification_failed, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mController.cancelAllClassifyTasks();
     }
 
     private static class ModelImagesAdapter extends ArrayAdapter<Bitmap> {

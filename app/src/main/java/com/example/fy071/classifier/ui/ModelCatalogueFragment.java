@@ -1,16 +1,17 @@
 package com.example.fy071.classifier.ui;
 
 
-import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.R;
@@ -23,7 +24,7 @@ public class ModelCatalogueFragment extends Fragment {
 
     private ListView mModelsList;
 
-    private TextView mLoadStatusText;
+    private ProgressBar mLoadStatusProgressBar;
 
     public static ModelCatalogueFragment create() {
         return new ModelCatalogueFragment();
@@ -40,7 +41,7 @@ public class ModelCatalogueFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mModelsList = view.findViewById(R.id.models_list);
-        mLoadStatusText = view.findViewById(R.id.models_load_status);
+        mLoadStatusProgressBar = view.findViewById(R.id.models_load_status);
     }
 
     @Override
@@ -53,8 +54,7 @@ public class ModelCatalogueFragment extends Fragment {
         mModelsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MainActivity.class.cast(getActivity()).displayModelOverview(
-                    mModelsAdapter.getItem(position));
+                MainActivity.class.cast(getActivity()).displayModelOverview(mModelsAdapter.getItem(position));
             }
         });
     }
@@ -72,8 +72,7 @@ public class ModelCatalogueFragment extends Fragment {
     }
 
     public void setExtractingModelMessageVisible(final boolean isVisible) {
-        mLoadStatusText.setText(getString(R.string.loading_models));
-        mLoadStatusText.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+        mLoadStatusProgressBar.setVisibility(isVisible ? View.VISIBLE : View.GONE);
     }
 
     public void displayModels(Set<Model> models) {
@@ -84,8 +83,7 @@ public class ModelCatalogueFragment extends Fragment {
     }
 
     public void showExtractionFailedMessage() {
-        mLoadStatusText.setText(R.string.model_extraction_failed);
-        mLoadStatusText.setVisibility(View.VISIBLE);
+        Toast.makeText(getActivity(), R.string.model_extraction_failed, Toast.LENGTH_SHORT).show();
     }
 
     private static final class ModelsAdapter extends ArrayAdapter<Model> {

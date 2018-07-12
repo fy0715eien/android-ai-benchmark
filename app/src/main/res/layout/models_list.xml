@@ -4,19 +4,20 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <ProgressBar
+        android:id="@+id/models_load_status"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@color/colorPrimary"
+        android:indeterminateTintMode="src_atop"
+        android:visibility="gone" />
+
     <ListView
         android:id="@+id/models_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <TextView
-        android:id="@+id/models_load_status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:gravity="center"
-        android:padding="5dp"
-        android:textAppearance="@android:style/TextAppearance.Large"
-        android:textColor="@color/colorAccent" />
+
 </LinearLayout>

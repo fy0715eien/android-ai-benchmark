@@ -1,6 +1,5 @@
 package com.example.fy071.classifier.ui;
 
-
 import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,6 +13,8 @@ import com.example.fy071.classifier.util.AccuracyCalculator;
 import com.qualcomm.qti.snpe.NeuralNetwork;
 
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ModelOverviewFragmentController extends AbstractViewController<ModelOverviewFragment> {
     private static final String TAG = ModelOverviewFragmentController.class.getSimpleName();
@@ -26,10 +27,11 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
 
     private LoadNetworkTask mLoadTask;
 
-    private AccuracyCalculator top1AccuracyCalculator;
+    private AccuracyCalculator top1AccuracyCalculator = new AccuracyCalculator();
 
-    private AccuracyCalculator top5AccuracyCalculator;
+    private AccuracyCalculator top5AccuracyCalculator = new AccuracyCalculator();
 
+    private List<ClassifyImageTask> taskList = new LinkedList<>();
 
     public ModelOverviewFragmentController(final Application application, Model model) {
         mApplication = application;
@@ -46,10 +48,10 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
 
     private void loadImageSamples(ModelOverviewFragment view) {
         for (int i = 0; i < mModel.jpgImages.length; i++) {
-            final File jpeg = mModel.jpgImages[i];
-            Log.i(TAG, "loadImageSamples: " + jpeg);
-            Bitmap bitmap = BitmapFactory.decodeFile(jpeg.getAbsolutePath());
-            onBitmapLoaded(jpeg, bitmap);
+            final File imagePaths = mModel.jpgImages[i];
+            Log.i(TAG, "loadImageSamples: " + imagePaths);
+            Bitmap bitmap = BitmapFactory.decodeFile(imagePaths.getAbsolutePath());
+            onBitmapLoaded(imagePaths, bitmap);
         }
     }
 
@@ -93,6 +95,7 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
         if (neuralNetwork != null) {
             final ClassifyImageTask task = new ClassifyImageTask(this, mNeuralNetwork, bitmap, mModel, position);
             task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+            taskList.add(task);
         } else {
             getView().displayModelNotLoaded();
         }
@@ -117,13 +120,17 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
     }
 
     public void onUpdateTop1Accuracy(Boolean result) {
-        top1AccuracyCalculator.addResult(result);
-        getView().setTop1Accuracy(top1AccuracyCalculator.getAccuracy());
+        if (isAttached()) {
+            top1AccuracyCalculator.addResult(result);
+            getView().setTop1Accuracy(top1AccuracyCalculator.getAccuracy());
+        }
     }
 
     public void onUpdateTop5Accuracy(Boolean result) {
-        top5AccuracyCalculator.addResult(result);
-        getView().setTop5Accuracy(top5AccuracyCalculator.getAccuracy());
+        if (isAttached()) {
+            top5AccuracyCalculator.addResult(result);
+            getView().setTop5Accuracy(top5AccuracyCalculator.getAccuracy());
+        }
     }
 
     public void setTargetRuntime(NeuralNetwork.Runtime targetRuntime) {
@@ -152,5 +159,11 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
     public void resetAccuracyCalculator() {
         top1AccuracyCalculator = new AccuracyCalculator();
         top5AccuracyCalculator = new AccuracyCalculator();
+    }
+
+    public void cancelAllClassifyTasks() {
+        for (ClassifyImageTask task : taskList) {
+            task.cancel(true);
+        }
     }
 }

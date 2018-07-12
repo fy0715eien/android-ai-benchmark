@@ -13,6 +13,9 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,11 +24,9 @@ import java.util.Set;
 public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
 
     public static final String MODEL_DLC_FILE_NAME = "model.dlc";
-    public static final String MODEL_MEAN_IMAGE_FILE_NAME = "mean_image.bin";
     public static final String LABELS_FILE_NAME = "labels.txt";
-    public static final String TRUE_LABELS_FILE_NAME = "true labels.txt";
+    public static final String EXPECTED_LABELS_FILE_NAME = "true labels.txt";
     public static final String IMAGES_FOLDER_NAME = "images";
-    public static final String RAW_EXT = ".raw";
     public static final String JPG_EXT = ".jpg";
 
     private static final String LOG_TAG = LoadModelsTask.class.getSimpleName();
@@ -71,26 +72,33 @@ public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
 
     private Model createModel(File modelDir) throws IOException {
         final Model model = new Model();
+
         model.name = modelDir.getName();
+
         model.file = new File(modelDir, MODEL_DLC_FILE_NAME);
-        model.meanImage = new File(modelDir, MODEL_MEAN_IMAGE_FILE_NAME);
+
         final File images = new File(modelDir, IMAGES_FOLDER_NAME);
         if (images.isDirectory()) {
-            model.rawImages = images.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().endsWith(RAW_EXT);
-                }
-            });
-            model.jpgImages = images.listFiles(new FileFilter() {
+            File[] files = images.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File file) {
                     return file.getName().endsWith(JPG_EXT);
                 }
             });
+            ArrayList<File> fileArrayList = new ArrayList<>(Arrays.asList(files));
+            fileArrayList.sort(new Comparator<File>() {
+                @Override
+                public int compare(File o1, File o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            model.jpgImages = fileArrayList.toArray(new File[fileArrayList.size()]);
         }
+
         model.labels = loadLabels(new File(modelDir, LABELS_FILE_NAME));
-        model.trueLabels = loadLabels(new File(modelDir, TRUE_LABELS_FILE_NAME));
+
+        model.expectedLabels = loadLabels(new File(modelDir, EXPECTED_LABELS_FILE_NAME));
+
         return model;
     }
 

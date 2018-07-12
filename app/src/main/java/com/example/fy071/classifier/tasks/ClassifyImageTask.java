@@ -5,18 +5,11 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
-
 import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.ui.ModelOverviewFragmentController;
 import com.qualcomm.qti.snpe.FloatTensor;
 import com.qualcomm.qti.snpe.NeuralNetwork;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,11 +18,12 @@ import java.util.Map;
 import static com.example.fy071.classifier.util.LayerNameHelper.INPUT_LAYER;
 import static com.example.fy071.classifier.util.LayerNameHelper.OUTPUT_LAYER;
 
-
 public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
     private static final String TAG = ClassifyImageTask.class.getSimpleName();
 
     private static final int FLOAT_SIZE = 4;
+
+    private static final int TOP_K = 5;
 
     private final NeuralNetwork mNeuralNetwork;
 
@@ -58,16 +52,12 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         final FloatTensor tensor = mNeuralNetwork.createFloatTensor(mNeuralNetwork.getInputTensorsShapes().get(INPUT_LAYER));
 
         final int[] dimensions = tensor.getShape();
-        final FloatBuffer meanImage = loadMeanImageIfAvailable(mModel.meanImage, tensor.getSize());
-        if (meanImage.remaining() != tensor.getSize()) {
-            return new String[0];
-        }
 
         final boolean isGrayScale = (dimensions[dimensions.length - 1] == 1);
         if (!isGrayScale) {
-            writeRgbBitmapAsFloat(mImage, meanImage, tensor);
+            writeRgbBitmapAsFloat(mImage, tensor);
         } else {
-            writeGrayScaleBitmapAsFloat(mImage, meanImage, tensor);
+            writeGrayScaleBitmapAsFloat(mImage, tensor);
         }
 
         final Map<String, FloatTensor> inputs = new HashMap<>();
@@ -76,7 +66,7 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         final Map<String, FloatTensor> outputs = mNeuralNetwork.execute(inputs);
         for (Map.Entry<String, FloatTensor> output : outputs.entrySet()) {
             if (output.getKey().equals(OUTPUT_LAYER)) {
-                for (Pair<Integer, Float> pair : topK(5, output.getValue())) {
+                for (Pair<Integer, Float> pair : topK(TOP_K, output.getValue())) {
                     result.add(mModel.labels[pair.first]);
                     result.add(String.valueOf(pair.second));
                 }
@@ -96,11 +86,11 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         if (labels.length > 0) {
             mController.onClassificationResult(labels);
 
-            String trueLabel = getTrueLabel(mPosition);
+            String trueLabel = getExpectedLabel(mPosition);
 
             mController.onShowExpectedLabel(trueLabel);
 
-            boolean top1Result = labels[0].equals(getTrueLabel(mPosition));
+            boolean top1Result = labels[0].equals(getExpectedLabel(mPosition));
             mController.onUpdateTop1Accuracy(top1Result);
 
             boolean top5Result = false;
@@ -117,7 +107,7 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         }
     }
 
-    private void writeRgbBitmapAsFloat(Bitmap image, FloatBuffer meanImage, FloatTensor tensor) {
+    private void writeRgbBitmapAsFloat(Bitmap image, FloatTensor tensor) {
         int imageMean = 128;
         float imageStd = 128.0f;
 
@@ -127,51 +117,25 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 final int rgb = pixels[y * image.getWidth() + x];
-                /*float b = ((rgb) & 0xFF) - meanImage.get();
-                float g = ((rgb >> 8) & 0xFF) - meanImage.get();
-                float r = ((rgb >> 16) & 0xFF) - meanImage.get();*/
-                float b = (((rgb) & 0xFF) - imageMean) / imageStd;  // imageMean = 128, imageStd = 128.0f
-                float g = (((rgb >> 8) & 0xFF) - imageMean) / imageStd; // imageMean = 128, imageStd = 128.0f
-                float r = (((rgb >> 16) & 0xFF) - imageMean) / imageStd; // imageMean = 128, imageStd = 128.0f
+
+                /*float b = ((rgb) & 0xFF) - imageMean;
+                float g = ((rgb >> 8) & 0xFF) - imageMean;
+                float r = ((rgb >> 16) & 0xFF) - imageMean;*/
+
+                float b = (((rgb) & 0xFF) - imageMean) / imageStd;
+                float g = (((rgb >> 8) & 0xFF) - imageMean) / imageStd;
+                float r = (((rgb >> 16) & 0xFF) - imageMean) / imageStd;
+
                 float[] pixelFloats = {b, g, r};
                 tensor.write(pixelFloats, 0, pixelFloats.length, y, x);
             }
         }
     }
 
-    private FloatBuffer loadMeanImageIfAvailable(File meanImage, final int imageSize) {
-        ByteBuffer buffer = ByteBuffer.allocate(imageSize * FLOAT_SIZE)
-                .order(ByteOrder.nativeOrder());
-        if (!meanImage.exists()) {
-            return buffer.asFloatBuffer();
-        }
-        FileInputStream fileInputStream = null;
-        try {
-            fileInputStream = new FileInputStream(meanImage);
-            final byte[] chunk = new byte[1024];
-            int read;
-            while ((read = fileInputStream.read(chunk)) != -1) {
-                buffer.put(chunk, 0, read);
-            }
-            buffer.flip();
-        } catch (IOException e) {
-            buffer = ByteBuffer.allocate(imageSize * FLOAT_SIZE);
-        } finally {
-            if (fileInputStream != null) {
-                try {
-                    fileInputStream.close();
-                } catch (IOException e) {
-                    // Do thing
-                }
-            }
-        }
-        return buffer.asFloatBuffer();
-    }
-
-    private void writeGrayScaleBitmapAsFloat(Bitmap image, FloatBuffer meanImage, FloatTensor tensor) {
+    private void writeGrayScaleBitmapAsFloat(Bitmap image, FloatTensor tensor) {
+        int imageMean = 128;
         final int[] pixels = new int[image.getWidth() * image.getHeight()];
-        image.getPixels(pixels, 0, image.getWidth(), 0, 0,
-                image.getWidth(), image.getHeight());
+        image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 final int rgb = pixels[y * image.getWidth() + x];
@@ -179,7 +143,7 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
                 final float g = ((rgb >> 8) & 0xFF);
                 final float r = ((rgb >> 16) & 0xFF);
                 float grayscale = (float) (r * 0.3 + g * 0.59 + b * 0.11);
-                grayscale -= meanImage.get();
+                grayscale -= imageMean;
                 tensor.write(grayscale, y, x);
             }
         }
@@ -216,8 +180,8 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         return index;
     }
 
-    private String getTrueLabel(int position) {
-        int labelPosition = Integer.valueOf(mModel.trueLabels[position]);
+    private String getExpectedLabel(int position) {
+        int labelPosition = Integer.valueOf(mModel.expectedLabels[position]);
         return mModel.labels[labelPosition];
     }
 }

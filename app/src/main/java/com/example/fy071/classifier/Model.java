@@ -1,7 +1,6 @@
 package com.example.fy071.classifier;
 
 
-import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -13,32 +12,26 @@ public class Model implements Parcelable {
     public String name;
     public File file;
 
-    public String[] labels;
-    public String[] trueLabels;
-
-    public File[] rawImages;
     public File[] jpgImages;
-    public File meanImage;
+
+    public String[] labels;
+    public String[] expectedLabels;
+
 
     protected Model(Parcel in) {
         name = in.readString();
-        file = new File(in.readString());
 
-        final String[] rawPaths = new String[in.readInt()];
-        in.readStringArray(rawPaths);
-        rawImages = fromPaths(rawPaths);
+        file = new File(in.readString());
 
         final String[] jpgPaths = new String[in.readInt()];
         in.readStringArray(jpgPaths);
         jpgImages = fromPaths(jpgPaths);
 
-        meanImage = new File(in.readString());
-
         labels = new String[in.readInt()];
         in.readStringArray(labels);
 
-        trueLabels = new String[in.readInt()];
-        in.readStringArray(trueLabels);
+        expectedLabels = new String[in.readInt()];
+        in.readStringArray(expectedLabels);
     }
 
     public Model() {
@@ -47,16 +40,16 @@ public class Model implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(name);
+
         dest.writeString(file.getAbsolutePath());
-        dest.writeInt(rawImages.length);
-        dest.writeStringArray(toPaths(rawImages));
+
         dest.writeInt(jpgImages.length);
         dest.writeStringArray(toPaths(jpgImages));
-        dest.writeString(meanImage.getAbsolutePath());
+
         dest.writeInt(labels.length);
         dest.writeStringArray(labels);
-        dest.writeInt(trueLabels.length);
-        dest.writeStringArray(trueLabels);
+        dest.writeInt(expectedLabels.length);
+        dest.writeStringArray(expectedLabels);
     }
 
     private File[] fromPaths(String[] paths) {

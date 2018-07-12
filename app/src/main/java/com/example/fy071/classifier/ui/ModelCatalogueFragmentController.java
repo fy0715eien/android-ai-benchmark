@@ -8,11 +8,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
 
-
 import com.example.fy071.classifier.FileProvider;
 import com.example.fy071.classifier.Model;
-import com.example.fy071.classifier.ModelExtractionService;
-import com.example.fy071.classifier.R;
 import com.example.fy071.classifier.tasks.LoadModelsTask;
 
 import java.util.Set;
@@ -44,8 +41,9 @@ public class ModelCatalogueFragmentController extends AbstractViewController<Mod
 
     private void startModelsExtraction() {
         //ModelExtractionService.extractModel(mContext, "alexnet", R.raw.alexnet);
-        ModelExtractionService.extractModel(mContext, "inception_v3_quantized", R.raw.inception_v3_quantized);
+        //ModelExtractionService.extractModel(mContext, "inception_v3_quantized", R.raw.inception_v3_quantized);
         //ModelExtractionService.extractModel(mContext, "inception_v3", R.raw.inception_v3);
+
     }
 
     @Override

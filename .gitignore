@@ -34,4 +34,4 @@ local.properties
 *.log
 
 # raw files
-src/main/res/raw/*
+src/main/res/raw/

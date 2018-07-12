@@ -1,8 +1,8 @@
 package com.example.fy071.classifier;
 
 import android.app.IntentService;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
@@ -19,14 +19,13 @@ public class ModelExtractionService extends IntentService {
     private static final String EXTRA_MODEL_RAW_RES_ID = "model_raw_res";
     private static final String EXTRA_MODEL_NAME = "model_name";
     public static final String MODELS_ROOT_DIR = "models";
-    private static final int CHUNK_SIZE = 1024;
+    private static final int CHUNK_SIZE = 512;
 
     public ModelExtractionService() {
         super("ModelExtractionService");
     }
 
-    public static void extractModel(final Context context, final String modelName,
-        final int modelRawResId) {
+    public static void extractModel(final Context context, final String modelName, final int modelRawResId) {
         Intent intent = new Intent(context, ModelExtractionService.class);
         intent.setAction(ACTION_EXTRACT);
         intent.putExtra(EXTRA_MODEL_NAME, modelName);
@@ -73,7 +72,8 @@ public class ModelExtractionService extends IntentService {
                 if (zipInputStream != null) {
                     zipInputStream.close();
                 }
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
             getContentResolver().notifyChange(FileProvider.getUri(), null);
         }
     }
@@ -105,8 +105,7 @@ public class ModelExtractionService extends IntentService {
         }
 
         if (!modelsRoot.isDirectory() && !modelsRoot.mkdir()) {
-            throw new IOException("Unable to create model root directory: " +
-                modelsRoot.getAbsolutePath());
+            throw new IOException("Unable to create model root directory: " + modelsRoot.getAbsolutePath());
         }
         return modelsRoot;
     }
@@ -114,8 +113,7 @@ public class ModelExtractionService extends IntentService {
     private File createModelDirectory(File modelsRoot, String modelName) throws IOException {
         final File modelRoot = new File(modelsRoot, modelName);
         if (!modelRoot.isDirectory() && !modelRoot.mkdir()) {
-            throw new IOException("Unable to create model root directory: " +
-                modelRoot.getAbsolutePath());
+            throw new IOException("Unable to create model root directory: " + modelRoot.getAbsolutePath());
         }
         return modelRoot;
     }
