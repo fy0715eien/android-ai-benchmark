@@ -14,7 +14,7 @@
     <string name="button_speed_test">Speed test</string>
     <string name="button_speed_test_with_accuracy">Speed test with accuracy</string>
     <string name="predict_labels">Predict labels: </string>
-    <string name="expected_label">Expected label: </string>
+    <string name="ground_truth">Ground truth: </string>
     <string name="top_1_acc">Top 1 accuracy: </string>
     <string name="top_5_acc">Top 5 accuracy: </string>
 </resources>

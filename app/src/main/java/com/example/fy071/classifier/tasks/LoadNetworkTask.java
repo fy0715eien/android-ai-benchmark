@@ -27,7 +27,8 @@ public class LoadNetworkTask extends AsyncTask<File, Void, NeuralNetwork> {
     public LoadNetworkTask(
             final Application application,
             final ModelOverviewFragmentController controller,
-            final Model model, NeuralNetwork.Runtime targetRuntime) {
+            final Model model,
+            NeuralNetwork.Runtime targetRuntime) {
         mApplication = application;
         mController = controller;
         mModel = model;

@@ -15,9 +15,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.fy071.classifier.util.LayerNameHelper.INPUT_LAYER;
-import static com.example.fy071.classifier.util.LayerNameHelper.OUTPUT_LAYER;
-
 public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
     private static final String TAG = ClassifyImageTask.class.getSimpleName();
 
@@ -49,7 +46,7 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
 
         final List<String> result = new LinkedList<>();
 
-        final FloatTensor tensor = mNeuralNetwork.createFloatTensor(mNeuralNetwork.getInputTensorsShapes().get(INPUT_LAYER));
+        final FloatTensor tensor = mNeuralNetwork.createFloatTensor(mNeuralNetwork.getInputTensorsShapes().get(mModel.inputLayer));
 
         final int[] dimensions = tensor.getShape();
 
@@ -61,11 +58,11 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         }
 
         final Map<String, FloatTensor> inputs = new HashMap<>();
-        inputs.put(INPUT_LAYER, tensor);
+        inputs.put(mModel.inputLayer, tensor);
 
         final Map<String, FloatTensor> outputs = mNeuralNetwork.execute(inputs);
         for (Map.Entry<String, FloatTensor> output : outputs.entrySet()) {
-            if (output.getKey().equals(OUTPUT_LAYER)) {
+            if (output.getKey().equals(mModel.outputLayer)) {
                 for (Pair<Integer, Float> pair : topK(TOP_K, output.getValue())) {
                     result.add(mModel.labels[pair.first]);
                     result.add(String.valueOf(pair.second));
@@ -86,11 +83,11 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         if (labels.length > 0) {
             mController.onClassificationResult(labels);
 
-            String trueLabel = getExpectedLabel(mPosition);
+            String trueLabel = getGroundTruth(mPosition);
 
-            mController.onShowExpectedLabel(trueLabel);
+            mController.onShowGroundTruth(trueLabel);
 
-            boolean top1Result = labels[0].equals(getExpectedLabel(mPosition));
+            boolean top1Result = labels[0].equals(getGroundTruth(mPosition));
             mController.onUpdateTop1Accuracy(top1Result);
 
             boolean top5Result = false;
@@ -180,8 +177,8 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         return index;
     }
 
-    private String getExpectedLabel(int position) {
-        int labelPosition = Integer.valueOf(mModel.expectedLabels[position]);
+    private String getGroundTruth(int position) {
+        int labelPosition = Integer.valueOf(mModel.groundTruths[position]);
         return mModel.labels[labelPosition];
     }
 }

@@ -74,7 +74,6 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
             mNeuralNetwork = neuralNetwork;
             ModelOverviewFragment view = getView();
             view.setNetworkDimensions(neuralNetwork.getInputTensorsShapes());
-            view.setModelVersion(neuralNetwork.getModelVersion());
             view.setLoadingVisible(false);
         } else {
             neuralNetwork.release();
@@ -113,9 +112,9 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
         }
     }
 
-    public void onShowExpectedLabel(String label) {
+    public void onShowGroundTruth(String label) {
         if (isAttached()) {
-            getView().setExpectedLabel(label);
+            getView().setGroundTruth(label);
         }
     }
 

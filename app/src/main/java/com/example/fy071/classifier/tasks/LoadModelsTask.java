@@ -21,14 +21,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * AsyncTask that loads all valid models in external file directory
+ */
 public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
+    public static final String GROUND_TRUTH_FILE_NAME = "ground truths.txt";
 
     public static final String MODEL_DLC_FILE_NAME = "model.dlc";
     public static final String LABELS_FILE_NAME = "labels.txt";
-    public static final String EXPECTED_LABELS_FILE_NAME = "true labels.txt";
+    public static final String LAYERS_FILE_NAME = "layers.txt";
     public static final String IMAGES_FOLDER_NAME = "images";
     public static final String JPG_EXT = ".jpg";
-
     private static final String LOG_TAG = LoadModelsTask.class.getSimpleName();
 
     private final ModelCatalogueFragmentController mController;
@@ -97,7 +100,13 @@ public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
 
         model.labels = loadLabels(new File(modelDir, LABELS_FILE_NAME));
 
-        model.expectedLabels = loadLabels(new File(modelDir, EXPECTED_LABELS_FILE_NAME));
+        model.groundTruths = loadLabels(new File(modelDir, GROUND_TRUTH_FILE_NAME));
+
+        String[] layers = loadLayers(new File(modelDir, LAYERS_FILE_NAME));
+
+        model.inputLayer = layers[0];
+
+        model.outputLayer = layers[1];
 
         return model;
     }
@@ -110,5 +119,20 @@ public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
             list.add(line);
         }
         return list.toArray(new String[list.size()]);
+    }
+
+    private String[] loadLayers(File layersFile) throws IOException {
+        final List<String> list = new ArrayList<>();
+        final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(layersFile)));
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            list.add(line);
+        }
+
+        if (list.size() != 2) {
+            throw new IOException();
+        } else {
+            return list.toArray(new String[list.size()]);
+        }
     }
 }

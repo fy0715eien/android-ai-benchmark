@@ -39,15 +39,6 @@
                     android:textAppearance="@android:style/TextAppearance.Medium" />
 
                 <TextView
-                    android:id="@+id/model_overview_version_label"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="@string/model_version"
-                    android:textAppearance="@android:style/TextAppearance.Medium" />
-
-                <TextView
                     android:id="@+id/model_overview_dimensions_label"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -65,14 +56,6 @@
 
                 <TextView
                     android:id="@+id/model_overview_name_text"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:textAppearance="@android:style/TextAppearance.Small" />
-
-                <TextView
-                    android:id="@+id/model_overview_version_text"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -124,13 +107,13 @@
             app:cardCornerRadius="4dp">
 
             <TextView
-                android:id="@+id/model_overview_expected_label"
+                android:id="@+id/model_overview_ground_truth_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/expected_label" />
+                android:text="@string/ground_truth" />
 
             <TextView
-                android:id="@+id/model_overview_expected_text"
+                android:id="@+id/model_overview_ground_truth_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center" />

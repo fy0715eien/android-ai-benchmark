@@ -64,13 +64,11 @@ public class ModelOverviewFragment extends Fragment {
 
     private TextView mClassificationText;
 
-    private TextView mExpectedText;
+    private TextView mGroundTruthText;
 
     private TextView mTop1AccuracyText;
 
     private TextView mTop5AccuracyText;
-
-    private TextView mModelVersionText;
 
     private FloatingActionButton mTestButton;
 
@@ -114,10 +112,9 @@ public class ModelOverviewFragment extends Fragment {
         });
 
         mModelNameText = view.findViewById(R.id.model_overview_name_text);
-        mModelVersionText = view.findViewById(R.id.model_overview_version_text);
         mDimensionsText = view.findViewById(R.id.model_overview_dimensions_text);
         mClassificationText = view.findViewById(R.id.model_overview_classification_text);
-        mExpectedText = view.findViewById(R.id.model_overview_expected_text);
+        mGroundTruthText = view.findViewById(R.id.model_overview_ground_truth_text);
         mTop1AccuracyText = view.findViewById(R.id.model_overview_top1_accuracy_text);
         mTop5AccuracyText = view.findViewById(R.id.model_overview_top5_accuracy_text);
         mProgressBar = view.findViewById(R.id.progressBar);
@@ -184,10 +181,6 @@ public class ModelOverviewFragment extends Fragment {
         mModelNameText.setText(modelName);
     }
 
-    public void setModelVersion(String version) {
-        mModelVersionText.setText(version);
-    }
-
     public void setClassificationResult(String[] classificationResult) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < classificationResult.length; i += 2) {
@@ -211,9 +204,9 @@ public class ModelOverviewFragment extends Fragment {
         mTop5AccuracyText.setVisibility(View.VISIBLE);
     }
 
-    public void setExpectedLabel(String label) {
-        mExpectedText.setText(label);
-        mExpectedText.setVisibility(View.VISIBLE);
+    public void setGroundTruth(String label) {
+        mGroundTruthText.setText(label);
+        mGroundTruthText.setVisibility(View.VISIBLE);
     }
 
     public void displayModelNotLoaded() {
@@ -236,8 +229,9 @@ public class ModelOverviewFragment extends Fragment {
             super(context, R.layout.model_image_layout);
         }
 
+        @NonNull
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
             View view;
             if (convertView == null) {
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.model_image_layout, parent, false);

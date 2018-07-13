@@ -15,8 +15,10 @@ public class Model implements Parcelable {
     public File[] jpgImages;
 
     public String[] labels;
-    public String[] expectedLabels;
+    public String[] groundTruths;
 
+    public String inputLayer;
+    public String outputLayer;
 
     protected Model(Parcel in) {
         name = in.readString();
@@ -30,8 +32,11 @@ public class Model implements Parcelable {
         labels = new String[in.readInt()];
         in.readStringArray(labels);
 
-        expectedLabels = new String[in.readInt()];
-        in.readStringArray(expectedLabels);
+        groundTruths = new String[in.readInt()];
+        in.readStringArray(groundTruths);
+
+        inputLayer = in.readString();
+        outputLayer = in.readString();
     }
 
     public Model() {
@@ -48,8 +53,13 @@ public class Model implements Parcelable {
 
         dest.writeInt(labels.length);
         dest.writeStringArray(labels);
-        dest.writeInt(expectedLabels.length);
-        dest.writeStringArray(expectedLabels);
+
+        dest.writeInt(groundTruths.length);
+        dest.writeStringArray(groundTruths);
+
+        dest.writeString(inputLayer);
+
+        dest.writeString(outputLayer);
     }
 
     private File[] fromPaths(String[] paths) {
