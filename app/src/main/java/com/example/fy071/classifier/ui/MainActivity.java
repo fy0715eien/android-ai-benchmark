@@ -3,8 +3,8 @@ package com.example.fy071.classifier.ui;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.R;
+import com.example.fy071.classifier.util.Model;
 
 public class MainActivity extends AppCompatActivity {
 

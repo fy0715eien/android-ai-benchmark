@@ -5,8 +5,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
-import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.ui.ModelOverviewFragmentController;
+import com.example.fy071.classifier.util.MeanImage;
+import com.example.fy071.classifier.util.Model;
 import com.qualcomm.qti.snpe.FloatTensor;
 import com.qualcomm.qti.snpe.NeuralNetwork;
 
@@ -17,8 +18,6 @@ import java.util.Map;
 
 public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
     private static final String TAG = ClassifyImageTask.class.getSimpleName();
-
-    private static final int FLOAT_SIZE = 4;
 
     private static final int TOP_K = 5;
 
@@ -83,17 +82,17 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         if (labels.length > 0) {
             mController.onClassificationResult(labels);
 
-            String trueLabel = getGroundTruth(mPosition);
+            String groundTruth = getGroundTruth(mPosition);
 
-            mController.onShowGroundTruth(trueLabel);
+            mController.onShowGroundTruth(groundTruth);
 
-            boolean top1Result = labels[0].equals(getGroundTruth(mPosition));
+            boolean top1Result = labels[0].equals(groundTruth);
             mController.onUpdateTop1Accuracy(top1Result);
 
             boolean top5Result = false;
             for (int i = 0; i < labels.length; i++) {
                 if (i % 2 == 0) {
-                    if (labels[i].equals(trueLabel)) {
+                    if (labels[i].equals(groundTruth)) {
                         top5Result = true;
                     }
                 }
@@ -105,25 +104,15 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
     }
 
     private void writeRgbBitmapAsFloat(Bitmap image, FloatTensor tensor) {
-        int imageMean = 128;
-        float imageStd = 128.0f;
 
         final int[] pixels = new int[image.getWidth() * image.getHeight()];
-        image.getPixels(pixels, 0, image.getWidth(), 0, 0,
-                image.getWidth(), image.getHeight());
+        image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
                 final int rgb = pixels[y * image.getWidth() + x];
 
-                /*float b = ((rgb) & 0xFF) - imageMean;
-                float g = ((rgb >> 8) & 0xFF) - imageMean;
-                float r = ((rgb >> 16) & 0xFF) - imageMean;*/
+                float[] pixelFloats = parseImage(rgb, mModel.isMeanImage);
 
-                float b = (((rgb) & 0xFF) - imageMean) / imageStd;
-                float g = (((rgb >> 8) & 0xFF) - imageMean) / imageStd;
-                float r = (((rgb >> 16) & 0xFF) - imageMean) / imageStd;
-
-                float[] pixelFloats = {b, g, r};
                 tensor.write(pixelFloats, 0, pixelFloats.length, y, x);
             }
         }
@@ -181,4 +170,20 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         int labelPosition = Integer.valueOf(mModel.groundTruths[position]);
         return mModel.labels[labelPosition];
     }
+
+    private float[] parseImage(int rgb, boolean isMean) {
+        if (isMean) {
+            float b = (((rgb) & 0xFF) - MeanImage.MEAN);
+            float g = (((rgb >> 8) & 0xFF) - MeanImage.MEAN);
+            float r = (((rgb >> 16) & 0xFF) - MeanImage.MEAN);
+            return new float[]{b, g, r};
+        } else {
+            float imageStd = 128.0f;
+            float b = (((rgb) & 0xFF) - MeanImage.MEAN_B) / imageStd;
+            float g = (((rgb >> 8) & 0xFF) - MeanImage.MEAN_G) / imageStd;
+            float r = (((rgb >> 16) & 0xFF) - MeanImage.MEAN_R) / imageStd;
+            return new float[]{b, g, r};
+        }
+    }
+
 }

@@ -1,76 +1,80 @@
 package com.example.fy071.classifier.ui;
 
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.database.ContentObserver;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Handler;
+import android.os.Environment;
 
-import com.example.fy071.classifier.FileProvider;
-import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.tasks.LoadModelsTask;
+import com.example.fy071.classifier.util.Model;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
+import ir.mahdi.mzip.zip.ZipArchive;
+
 public class ModelCatalogueFragmentController extends AbstractViewController<ModelCatalogueFragment> {
+    private static final String MODELS_ROOT_DIR = "models";
+
+    private static final String TAG = ModelCatalogueFragment.class.getSimpleName();
 
     private final Context mContext;
 
-    public ModelCatalogueFragmentController(Context context) {
+    private CompositeDisposable compositeDisposable;
+
+    ModelCatalogueFragmentController(Context context) {
         mContext = context;
+        compositeDisposable = new CompositeDisposable();
     }
 
     @Override
     protected void onViewAttached(final ModelCatalogueFragment view) {
-        view.setExtractingModelMessageVisible(true);
+        view.setExtractingProgressVisible(true);
+    }
 
-        final ContentResolver contentResolver = mContext.getContentResolver();
-        contentResolver.registerContentObserver(
-                Uri.withAppendedPath(FileProvider.getUri(), Model.INVALID_ID),
-                false,
-                mModelExtractionFailedObserver
-        );
+    private void startModelsExtraction() {
+        List<File> files = new ArrayList<>();
+        File root = Environment.getExternalStorageDirectory();
+        files.add(new File(root, "alexnet.zip"));
+        files.add(new File(root, "inception_v3.zip"));
+        files.add(new File(root, "inception_v3_quantized.zip"));
 
-        contentResolver.registerContentObserver(FileProvider.getUri(), true, mModelExtractionObserver);
+        Disposable disposable = Observable
+                .fromIterable(files)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<File>() {
+                    @Override
+                    public void accept(File zipFile) throws Exception {
+                        if (zipFile.exists()) {
+                            return;
+                        }
+                        String targetPath = zipFile.getAbsolutePath();
+                        String destinationPath = createModelDirectory(getExternalModelsRootDirectory(), zipFile.getName()).getAbsolutePath();
+                        ZipArchive.unzip(targetPath, destinationPath, "");
+                    }
+                });
+        compositeDisposable.add(disposable);
+    }
 
+    public void extractAndLoad() {
         startModelsExtraction();
         loadModels();
     }
 
-    private void startModelsExtraction() {
-        //ModelExtractionService.extractModel(mContext, "alexnet", R.raw.alexnet);
-        //ModelExtractionService.extractModel(mContext, "inception_v3_quantized", R.raw.inception_v3_quantized);
-        //ModelExtractionService.extractModel(mContext, "inception_v3", R.raw.inception_v3);
-
-    }
-
     @Override
     protected void onViewDetached(final ModelCatalogueFragment view) {
-        final ContentResolver contentResolver = mContext.getContentResolver();
-        contentResolver.unregisterContentObserver(mModelExtractionObserver);
-        contentResolver.unregisterContentObserver(mModelExtractionFailedObserver);
+        compositeDisposable.dispose();
     }
-
-    private final ContentObserver mModelExtractionObserver = new ContentObserver(new Handler()) {
-        @Override
-        public void onChange(boolean selfChange) {
-            super.onChange(selfChange);
-            if (isAttached()) {
-                loadModels();
-            }
-        }
-    };
-
-    private final ContentObserver mModelExtractionFailedObserver = new ContentObserver(new Handler()) {
-        @Override
-        public void onChange(boolean selfChange) {
-            if (isAttached()) {
-                getView().showExtractionFailedMessage();
-            }
-        }
-    };
 
     private void loadModels() {
         final LoadModelsTask task = new LoadModelsTask(mContext, this);
@@ -81,5 +85,25 @@ public class ModelCatalogueFragmentController extends AbstractViewController<Mod
         if (isAttached()) {
             getView().displayModels(models);
         }
+    }
+
+    private File getExternalModelsRootDirectory() throws IOException {
+        final File modelsRoot = mContext.getExternalFilesDir(MODELS_ROOT_DIR);
+        if (modelsRoot == null) {
+            throw new IOException("Unable to access application external storage.");
+        }
+
+        if (!modelsRoot.isDirectory() && !modelsRoot.mkdir()) {
+            throw new IOException("Unable to create model root directory: " + modelsRoot.getAbsolutePath());
+        }
+        return modelsRoot;
+    }
+
+    private File createModelDirectory(File modelsRoot, String modelName) throws IOException {
+        final File modelRoot = new File(modelsRoot, modelName);
+        if (!modelRoot.isDirectory() && !modelRoot.mkdir()) {
+            throw new IOException("Unable to create model root directory: " + modelRoot.getAbsolutePath());
+        }
+        return modelRoot;
     }
 }

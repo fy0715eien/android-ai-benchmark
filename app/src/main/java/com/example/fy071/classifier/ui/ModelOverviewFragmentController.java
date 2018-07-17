@@ -4,17 +4,25 @@ import android.app.Application;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.util.Log;
 
-import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.tasks.ClassifyImageTask;
 import com.example.fy071.classifier.tasks.LoadNetworkTask;
 import com.example.fy071.classifier.util.AccuracyCalculator;
+import com.example.fy071.classifier.util.Model;
 import com.qualcomm.qti.snpe.NeuralNetwork;
 
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
+
 
 public class ModelOverviewFragmentController extends AbstractViewController<ModelOverviewFragment> {
     private static final String TAG = ModelOverviewFragmentController.class.getSimpleName();
@@ -27,32 +35,50 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
 
     private LoadNetworkTask mLoadTask;
 
-    private AccuracyCalculator top1AccuracyCalculator = new AccuracyCalculator();
+    private AccuracyCalculator top1AccuracyCalculator;
 
-    private AccuracyCalculator top5AccuracyCalculator = new AccuracyCalculator();
+    private AccuracyCalculator top5AccuracyCalculator;
 
+    private CompositeDisposable compositeDisposable;
+
+    /**
+     * Use to shutdown all ClassifyImageTasks
+     */
     private List<ClassifyImageTask> taskList = new LinkedList<>();
 
-    public ModelOverviewFragmentController(final Application application, Model model) {
+    ModelOverviewFragmentController(final Application application, Model model) {
         mApplication = application;
         mModel = model;
+        top1AccuracyCalculator = new AccuracyCalculator();
+        top5AccuracyCalculator = new AccuracyCalculator();
+        compositeDisposable = new CompositeDisposable();
     }
 
     @Override
     protected void onViewAttached(ModelOverviewFragment view) {
         view.setLoadingVisible(true);
         view.setModelName(mModel.name);
-        loadImageSamples(view);
+        loadImageSamples();
         loadNetwork(NeuralNetwork.Runtime.CPU);
     }
 
-    private void loadImageSamples(ModelOverviewFragment view) {
-        for (int i = 0; i < mModel.jpgImages.length; i++) {
-            final File imagePaths = mModel.jpgImages[i];
-            Log.i(TAG, "loadImageSamples: " + imagePaths);
-            Bitmap bitmap = BitmapFactory.decodeFile(imagePaths.getAbsolutePath());
-            onBitmapLoaded(imagePaths, bitmap);
-        }
+    private void loadImageSamples() {
+        Disposable disposable = Observable.fromArray(mModel.jpgImages)
+                .map(new Function<File, Bitmap>() {
+                    @Override
+                    public Bitmap apply(File file) {
+                        return BitmapFactory.decodeFile(file.getAbsolutePath());
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Bitmap>() {
+                    @Override
+                    public void accept(Bitmap bitmap) {
+                        onBitmapLoaded(bitmap);
+                    }
+                });
+        compositeDisposable.add(disposable);
     }
 
     @Override
@@ -63,7 +89,7 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
         }
     }
 
-    public void onBitmapLoaded(File imageFile, Bitmap bitmap) {
+    private void onBitmapLoaded(Bitmap bitmap) {
         if (isAttached()) {
             getView().addSampleBitmap(bitmap);
         }
@@ -73,7 +99,7 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
         if (isAttached()) {
             mNeuralNetwork = neuralNetwork;
             ModelOverviewFragment view = getView();
-            view.setNetworkDimensions(neuralNetwork.getInputTensorsShapes());
+            view.setNetworkDimensions(neuralNetwork.getInputTensorsShapes().get(mModel.inputLayer));
             view.setLoadingVisible(false);
         } else {
             neuralNetwork.release();
@@ -134,8 +160,7 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
 
     public void setTargetRuntime(NeuralNetwork.Runtime targetRuntime) {
         if (isAttached()) {
-            ModelOverviewFragment view = getView();
-            view.setLoadingVisible(true);
+            getView().setLoadingVisible(true);
             loadNetwork(targetRuntime);
         }
     }
@@ -164,5 +189,9 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
         for (ClassifyImageTask task : taskList) {
             task.cancel(true);
         }
+    }
+
+    public void dispose() {
+        compositeDisposable.dispose();
     }
 }

@@ -1,4 +1,4 @@
-package com.example.fy071.classifier;
+package com.example.fy071.classifier.util;
 
 
 import android.os.Parcel;
@@ -7,8 +7,6 @@ import android.os.Parcelable;
 import java.io.File;
 
 public class Model implements Parcelable {
-    public static final String INVALID_ID = "null";
-
     public String name;
     public File file;
 
@@ -19,6 +17,9 @@ public class Model implements Parcelable {
 
     public String inputLayer;
     public String outputLayer;
+
+    public String mean;
+    public boolean isMeanImage;
 
     protected Model(Parcel in) {
         name = in.readString();
@@ -37,6 +38,9 @@ public class Model implements Parcelable {
 
         inputLayer = in.readString();
         outputLayer = in.readString();
+
+        mean = in.readString();
+        isMeanImage = (mean.equals("mean"));
     }
 
     public Model() {
@@ -60,6 +64,8 @@ public class Model implements Parcelable {
         dest.writeString(inputLayer);
 
         dest.writeString(outputLayer);
+
+        dest.writeString(mean);
     }
 
     private File[] fromPaths(String[] paths) {

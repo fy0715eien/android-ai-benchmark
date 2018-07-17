@@ -4,8 +4,8 @@ import android.app.Application;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.ui.ModelOverviewFragmentController;
+import com.example.fy071.classifier.util.Model;
 import com.qualcomm.qti.snpe.NeuralNetwork;
 import com.qualcomm.qti.snpe.SNPE;
 

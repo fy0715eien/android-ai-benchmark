@@ -20,16 +20,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.R;
+import com.example.fy071.classifier.util.Model;
 import com.qualcomm.qti.snpe.NeuralNetwork;
 import com.qualcomm.qti.snpe.SNPE;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Map;
-
-import static com.example.fy071.classifier.util.LayerNameHelper.INPUT_LAYER;
+import java.util.Objects;
 
 public class ModelOverviewFragment extends Fragment {
     private static final String TAG = ModelOverviewFragment.class.getSimpleName();
@@ -124,14 +122,17 @@ public class ModelOverviewFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setHasOptionsMenu(true);
-        final Model model = getArguments().getParcelable(EXTRA_MODEL);
-        mController = new ModelOverviewFragmentController(getActivity().getApplication(), model);
+        final Model model;
+        if (getArguments() != null) {
+            model = getArguments().getParcelable(EXTRA_MODEL);
+            mController = new ModelOverviewFragmentController(Objects.requireNonNull(getActivity()).getApplication(), model);
+        }
     }
 
     @Override
     public void onCreateOptionsMenu(android.view.Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        final SNPE.NeuralNetworkBuilder builder = new SNPE.NeuralNetworkBuilder(getActivity().getApplication());
+        final SNPE.NeuralNetworkBuilder builder = new SNPE.NeuralNetworkBuilder(Objects.requireNonNull(getActivity()).getApplication());
         for (MenuRuntimeGroup item : MenuRuntimeGroup.values()) {
             if (builder.isRuntimeSupported(item.runtime)) {
                 menu.add(MenuRuntimeGroup.ID, item.ordinal(), 0, item.runtime.name());
@@ -167,8 +168,8 @@ public class ModelOverviewFragment extends Fragment {
         }
     }
 
-    public void setNetworkDimensions(Map<String, int[]> inputDimensions) {
-        mDimensionsText.setText(Arrays.toString(inputDimensions.get(INPUT_LAYER)));
+    public void setNetworkDimensions(int[] Dimensions) {
+        mDimensionsText.setText(Arrays.toString(Dimensions));
     }
 
     public void displayModelLoadFailed() {
@@ -183,8 +184,9 @@ public class ModelOverviewFragment extends Fragment {
 
     public void setClassificationResult(String[] classificationResult) {
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < classificationResult.length; i += 2) {
-            result.append(String.format("%s: %s", classificationResult[i], classificationResult[i + 1])).append("\n");
+        result.append(String.format("%s: %s", classificationResult[0], classificationResult[1]));
+        for (int i = 2; i < classificationResult.length; i += 2) {
+            result.append("\n").append(String.format("%s: %s", classificationResult[i], classificationResult[i + 1]));
         }
         mClassificationText.setText(result);
         mClassificationText.setVisibility(View.VISIBLE);
@@ -221,11 +223,12 @@ public class ModelOverviewFragment extends Fragment {
     public void onPause() {
         super.onPause();
         mController.cancelAllClassifyTasks();
+        mController.dispose();
     }
 
     private static class ModelImagesAdapter extends ArrayAdapter<Bitmap> {
 
-        public ModelImagesAdapter(Context context) {
+        ModelImagesAdapter(Context context) {
             super(context, R.layout.model_image_layout);
         }
 

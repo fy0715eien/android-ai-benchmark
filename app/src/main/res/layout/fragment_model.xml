@@ -94,7 +94,8 @@
                     android:id="@+id/model_overview_classification_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center" />
+                    android:gravity="center"
+                    android:minLines="5" />
             </LinearLayout>
 
 

@@ -4,8 +4,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.example.fy071.classifier.Model;
 import com.example.fy071.classifier.ui.ModelCatalogueFragmentController;
+import com.example.fy071.classifier.util.Model;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,14 +25,14 @@ import java.util.Set;
  * AsyncTask that loads all valid models in external file directory
  */
 public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
-    public static final String GROUND_TRUTH_FILE_NAME = "ground truths.txt";
+    private static final String TAG = LoadModelsTask.class.getSimpleName();
 
-    public static final String MODEL_DLC_FILE_NAME = "model.dlc";
-    public static final String LABELS_FILE_NAME = "labels.txt";
-    public static final String LAYERS_FILE_NAME = "layers.txt";
-    public static final String IMAGES_FOLDER_NAME = "images";
-    public static final String JPG_EXT = ".jpg";
-    private static final String LOG_TAG = LoadModelsTask.class.getSimpleName();
+    private static final String GROUND_TRUTH_FILE_NAME = "ground truths.txt";
+    private static final String MODEL_DLC_FILE_NAME = "model.dlc";
+    private static final String LABELS_FILE_NAME = "labels.txt";
+    private static final String LAYERS_FILE_NAME = "layers.txt";
+    private static final String IMAGES_FOLDER_NAME = "images";
+    private static final String JPG_EXT = ".jpg";
 
     private final ModelCatalogueFragmentController mController;
 
@@ -67,7 +67,7 @@ public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
             try {
                 models.add(createModel(child));
             } catch (IOException e) {
-                Log.e(LOG_TAG, "Failed to load model from model directory.", e);
+                Log.e(TAG, "Failed to load model from model directory.", e);
             }
         }
         return models;
@@ -108,6 +108,10 @@ public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
 
         model.outputLayer = layers[1];
 
+        model.mean = layers[2];
+
+        model.isMeanImage = model.mean.equals("mean");
+
         return model;
     }
 
@@ -129,7 +133,7 @@ public class LoadModelsTask extends AsyncTask<Void, Void, Set<Model>> {
             list.add(line);
         }
 
-        if (list.size() != 2) {
+        if (list.size() != 3) {
             throw new IOException();
         } else {
             return list.toArray(new String[list.size()]);
