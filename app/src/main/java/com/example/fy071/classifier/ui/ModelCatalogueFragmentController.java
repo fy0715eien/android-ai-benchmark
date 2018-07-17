@@ -15,10 +15,9 @@ import java.util.List;
 import java.util.Set;
 
 import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import ir.mahdi.mzip.zip.ZipArchive;
 
@@ -29,11 +28,8 @@ public class ModelCatalogueFragmentController extends AbstractViewController<Mod
 
     private final Context mContext;
 
-    private CompositeDisposable compositeDisposable;
-
     ModelCatalogueFragmentController(Context context) {
         mContext = context;
-        compositeDisposable = new CompositeDisposable();
     }
 
     @Override
@@ -41,39 +37,44 @@ public class ModelCatalogueFragmentController extends AbstractViewController<Mod
         view.setExtractingProgressVisible(true);
     }
 
-    private void startModelsExtraction() {
+    public void startModelsExtraction() {
         List<File> files = new ArrayList<>();
         File root = Environment.getExternalStorageDirectory();
         files.add(new File(root, "alexnet.zip"));
         files.add(new File(root, "inception_v3.zip"));
         files.add(new File(root, "inception_v3_quantized.zip"));
 
-        Disposable disposable = Observable
+        Observable
                 .fromIterable(files)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<File>() {
+                .subscribe(new Observer<File>() {
                     @Override
-                    public void accept(File zipFile) throws Exception {
-                        if (zipFile.exists()) {
-                            return;
-                        }
-                        String targetPath = zipFile.getAbsolutePath();
-                        String destinationPath = createModelDirectory(getExternalModelsRootDirectory(), zipFile.getName()).getAbsolutePath();
-                        ZipArchive.unzip(targetPath, destinationPath, "");
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(File file) {
+                        extractSingle(file);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        loadModels();
                     }
                 });
-        compositeDisposable.add(disposable);
     }
 
-    public void extractAndLoad() {
-        startModelsExtraction();
-        loadModels();
-    }
 
     @Override
     protected void onViewDetached(final ModelCatalogueFragment view) {
-        compositeDisposable.dispose();
+
     }
 
     private void loadModels() {
@@ -99,11 +100,24 @@ public class ModelCatalogueFragmentController extends AbstractViewController<Mod
         return modelsRoot;
     }
 
-    private File createModelDirectory(File modelsRoot, String modelName) throws IOException {
-        final File modelRoot = new File(modelsRoot, modelName);
-        if (!modelRoot.isDirectory() && !modelRoot.mkdir()) {
-            throw new IOException("Unable to create model root directory: " + modelRoot.getAbsolutePath());
+    private File createModelDirectory(File directory) throws IOException {
+        if (!directory.isDirectory() && !directory.mkdir()) {
+            throw new IOException("Unable to create model root directory: " + directory.getAbsolutePath());
         }
-        return modelRoot;
+        return directory;
+    }
+
+    private void extractSingle(File zipFile) {
+        try {
+            String targetPath = zipFile.getAbsolutePath();
+            File destFile = new File(getExternalModelsRootDirectory(), zipFile.getName());
+            if (destFile.exists()) {
+                return;
+            }
+            String destinationPath = createModelDirectory(destFile).getAbsolutePath();
+            ZipArchive.unzip(targetPath, destinationPath, "");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

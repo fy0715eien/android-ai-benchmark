@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ import permissions.dispatcher.RuntimePermissions;
 
 @RuntimePermissions
 public class ModelCatalogueFragment extends Fragment {
+    private static final String TAG = ModelCatalogueFragment.class.getSimpleName();
 
     private ModelCatalogueFragmentController mController;
 
@@ -100,7 +102,8 @@ public class ModelCatalogueFragment extends Fragment {
 
     @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
     public void handlePermissions() {
-        mController.extractAndLoad();
+        Log.i(TAG, "handlePermissions: ");
+        mController.startModelsExtraction();
     }
 
     @OnShowRationale(Manifest.permission.READ_EXTERNAL_STORAGE)

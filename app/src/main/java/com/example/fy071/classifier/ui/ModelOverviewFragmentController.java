@@ -161,6 +161,7 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
     public void setTargetRuntime(NeuralNetwork.Runtime targetRuntime) {
         if (isAttached()) {
             getView().setLoadingVisible(true);
+            cancelAllClassifyTasks();
             loadNetwork(targetRuntime);
         }
     }
