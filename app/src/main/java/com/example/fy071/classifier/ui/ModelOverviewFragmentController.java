@@ -87,6 +87,7 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
             mNeuralNetwork.release();
             mNeuralNetwork = null;
         }
+        cancelAllClassifyTasks();
     }
 
     private void onBitmapLoaded(Bitmap bitmap) {
@@ -115,14 +116,15 @@ public class ModelOverviewFragmentController extends AbstractViewController<Mode
         mLoadTask = null;
     }
 
-    public void classify(final Bitmap bitmap, int position) {
+    public boolean classifyWithLoadCheck(final Bitmap bitmap, int position) {
         final NeuralNetwork neuralNetwork = mNeuralNetwork;
         if (neuralNetwork != null) {
             final ClassifyImageTask task = new ClassifyImageTask(this, mNeuralNetwork, bitmap, mModel, position);
             task.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
             taskList.add(task);
+            return true;
         } else {
-            getView().displayModelNotLoaded();
+            return false;
         }
     }
 

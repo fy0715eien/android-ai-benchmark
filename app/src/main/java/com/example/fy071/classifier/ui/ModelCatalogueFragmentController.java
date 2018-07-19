@@ -44,8 +44,7 @@ public class ModelCatalogueFragmentController extends AbstractViewController<Mod
         files.add(new File(root, "inception_v3.zip"));
         files.add(new File(root, "inception_v3_quantized.zip"));
 
-        Observable
-                .fromIterable(files)
+        Observable.fromIterable(files)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<File>() {

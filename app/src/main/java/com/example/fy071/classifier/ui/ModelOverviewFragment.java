@@ -5,9 +5,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,10 +29,18 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 public class ModelOverviewFragment extends Fragment {
     private static final String TAG = ModelOverviewFragment.class.getSimpleName();
 
     public static final String EXTRA_MODEL = "model";
+
+    private ModelImagesAdapter mImageGridAdapter;
+
+    private ModelOverviewFragmentController mController;
 
     enum MenuRuntimeGroup {
         SelectCpuRuntime(NeuralNetwork.Runtime.CPU),
@@ -48,27 +56,40 @@ public class ModelOverviewFragment extends Fragment {
         }
     }
 
-    private ProgressBar mProgressBar;
+    @BindView(R.id.progressBar)
+    ProgressBar mProgressBar;
 
-    private GridView mImageGrid;
+    @BindView(R.id.model_image_grid)
+    GridView mImageGrid;
 
-    private ModelImagesAdapter mImageGridAdapter;
+    @BindView(R.id.model_overview_dimensions_text)
+    TextView mDimensionsText;
 
-    private ModelOverviewFragmentController mController;
+    @BindView(R.id.model_overview_name_text)
+    TextView mModelNameText;
 
-    private TextView mDimensionsText;
+    @BindView(R.id.model_overview_classification_text)
+    TextView mClassificationText;
 
-    private TextView mModelNameText;
+    @BindView(R.id.model_overview_ground_truth_text)
+    TextView mGroundTruthText;
 
-    private TextView mClassificationText;
+    @BindView(R.id.model_overview_top1_accuracy_text)
+    TextView mTop1AccuracyText;
 
-    private TextView mGroundTruthText;
+    @BindView(R.id.model_overview_top5_accuracy_text)
+    TextView mTop5AccuracyText;
 
-    private TextView mTop1AccuracyText;
-
-    private TextView mTop5AccuracyText;
-
-    private FloatingActionButton mTestButton;
+    @OnClick(R.id.button_test)
+    void classify() {
+        mController.resetAccuracyCalculator();
+        for (int position = 0; position < mImageGridAdapter.getCount(); position++) {
+            final Bitmap bitmap = mImageGridAdapter.getItem(position);
+            if (!mController.classifyWithLoadCheck(bitmap, position)) {
+                displayModelNotLoaded();
+            }
+        }
+    }
 
     public static ModelOverviewFragment create(final Model model) {
         final ModelOverviewFragment fragment = new ModelOverviewFragment();
@@ -86,42 +107,22 @@ public class ModelOverviewFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mImageGrid = view.findViewById(R.id.model_image_grid);
+        ButterKnife.bind(this, view);
+        setHasOptionsMenu(true);
         mImageGridAdapter = new ModelImagesAdapter(getActivity());
         mImageGrid.setAdapter(mImageGridAdapter);
         mImageGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final Bitmap bitmap = mImageGridAdapter.getItem(position);
-                mController.classify(bitmap, position);
+                mController.classifyWithLoadCheck(bitmap, position);
             }
         });
-
-        mTestButton = view.findViewById(R.id.button_test);
-        mTestButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mController.resetAccuracyCalculator();
-                for (int position = 0; position < mImageGridAdapter.getCount(); position++) {
-                    final Bitmap bitmap = mImageGridAdapter.getItem(position);
-                    mController.classify(bitmap, position);
-                }
-            }
-        });
-
-        mModelNameText = view.findViewById(R.id.model_overview_name_text);
-        mDimensionsText = view.findViewById(R.id.model_overview_dimensions_text);
-        mClassificationText = view.findViewById(R.id.model_overview_classification_text);
-        mGroundTruthText = view.findViewById(R.id.model_overview_ground_truth_text);
-        mTop1AccuracyText = view.findViewById(R.id.model_overview_top1_accuracy_text);
-        mTop5AccuracyText = view.findViewById(R.id.model_overview_top5_accuracy_text);
-        mProgressBar = view.findViewById(R.id.progressBar);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        setHasOptionsMenu(true);
         final Model model;
         if (getArguments() != null) {
             model = getArguments().getParcelable(EXTRA_MODEL);
@@ -130,7 +131,7 @@ public class ModelOverviewFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(android.view.Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         final SNPE.NeuralNetworkBuilder builder = new SNPE.NeuralNetworkBuilder(Objects.requireNonNull(getActivity()).getApplication());
         for (MenuRuntimeGroup item : MenuRuntimeGroup.values()) {
@@ -157,8 +158,8 @@ public class ModelOverviewFragment extends Fragment {
 
     @Override
     public void onStop() {
-        mController.detach(this);
         super.onStop();
+        mController.detach(this);
     }
 
     public void addSampleBitmap(Bitmap bitmap) {

@@ -85,17 +85,17 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:layout_margin="4dp"
                     android:id="@+id/model_overview_predict_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
                     android:text="@string/predict_labels" />
 
                 <TextView
-                    android:layout_margin="4dp"
                     android:id="@+id/model_overview_classification_text"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
                     android:gravity="center_horizontal"
                     android:minLines="8" />
             </LinearLayout>
@@ -109,20 +109,28 @@
             android:layout_margin="4dp"
             app:cardCornerRadius="4dp">
 
-            <TextView
-                android:layout_margin="4dp"
-                android:id="@+id/model_overview_ground_truth_label"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/ground_truth" />
+                android:orientation="vertical"
+                android:layout_height="match_parent">
 
-            <TextView
-                android:layout_margin="4dp"
-                android:id="@+id/model_overview_ground_truth_text"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:minLines="3" />
+                <TextView
+                    android:id="@+id/model_overview_ground_truth_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:text="@string/ground_truth" />
+
+                <TextView
+                    android:id="@+id/model_overview_ground_truth_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:gravity="center_horizontal"
+                    android:minLines="3" />
+            </LinearLayout>
+
+
         </android.support.v7.widget.CardView>
 
         <LinearLayout

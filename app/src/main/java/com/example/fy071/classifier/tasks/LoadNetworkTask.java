@@ -43,7 +43,6 @@ public class LoadNetworkTask extends AsyncTask<File, Void, NeuralNetwork> {
                     .setDebugEnabled(false)
                     .setRuntimeOrder(mTargetRuntime)
                     .setModel(mModel.file);
-            Log.d(TAG, "doInBackground: " + mModel.file);
             network = builder.build();
         } catch (IllegalStateException | IOException e) {
             Log.e(TAG, e.getMessage(), e);
