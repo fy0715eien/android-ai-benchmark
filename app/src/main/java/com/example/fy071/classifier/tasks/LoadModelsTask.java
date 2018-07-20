@@ -4,7 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.example.fy071.classifier.ui.ModelCatalogueFragmentController;
+import com.example.fy071.classifier.ui.benchmark.ModelCatalogueFragmentController;
 import com.example.fy071.classifier.util.Model;
 
 import java.io.BufferedReader;

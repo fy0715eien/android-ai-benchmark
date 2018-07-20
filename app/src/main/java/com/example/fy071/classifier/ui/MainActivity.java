@@ -1,14 +1,14 @@
 package com.example.fy071.classifier.ui;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 
 import com.example.fy071.classifier.R;
+import com.example.fy071.classifier.ui.benchmark.ModelCatalogueFragment;
+import com.example.fy071.classifier.ui.benchmark.ModelOverviewFragment;
+import com.example.fy071.classifier.ui.gallery.GalleryFragment;
 import com.example.fy071.classifier.util.Model;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements Drawer.OnDrawerIt
         setSupportActionBar(toolbar);
 
         drawer = new DrawerBuilder(this)
-                .withHeader(R.layout.drawer_header)
+                .withHeader(R.layout.layout_drawer_header)
                 .addDrawerItems(
                         new PrimaryDrawerItem()
                                 .withIdentifier(DRAWER_BENCHMARK)
@@ -88,9 +88,15 @@ public class MainActivity extends AppCompatActivity implements Drawer.OnDrawerIt
     public void displayGallery() {
         toolbar.setTitle("Gallery");
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main_content, new Fragment())
+                .replace(R.id.main_content, new GalleryFragment())
                 .addToBackStack(null)
                 .commit();
+    }
+
+    public void displayAboutActivity() {
+        new LibsBuilder().withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
+                .withActivityTitle("About")
+                .start(this);
     }
 
     @Override
@@ -111,10 +117,7 @@ public class MainActivity extends AppCompatActivity implements Drawer.OnDrawerIt
         } else if (previousSelectedItem == DRAWER_GALLERY) {
             displayGallery();
         } else if (previousSelectedItem == DRAWER_ABOUT) {
-            new LibsBuilder()
-                    .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
-                    .withActivityTitle("About")
-                    .start(this);
+            displayAboutActivity();
         }
         previousSelectedItem = 0L;
     }
@@ -128,14 +131,12 @@ public class MainActivity extends AppCompatActivity implements Drawer.OnDrawerIt
     public void onBackPressed() {
         if (drawer.isDrawerOpen()) {
             drawer.closeDrawer();
+        } else if (previousSelectedItem == 0L) {
+            super.onBackPressed();
         } else if (previousSelectedItem != DRAWER_BENCHMARK) {
             drawer.setSelection(DRAWER_BENCHMARK);
-        } else {
-            super.onBackPressed();
+            displayModelCatalogue();
+            previousSelectedItem = 0L;
         }
-    }
-
-    public Toolbar getToolbar() {
-        return toolbar;
     }
 }

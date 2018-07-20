@@ -1,4 +1,4 @@
-package com.example.fy071.classifier.ui;
+package com.example.fy071.classifier.ui.benchmark;
 
 
 import android.Manifest;
@@ -18,6 +18,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.example.fy071.classifier.R;
+import com.example.fy071.classifier.ui.MainActivity;
 import com.example.fy071.classifier.util.Model;
 
 import java.util.Set;
@@ -45,7 +46,7 @@ public class ModelCatalogueFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.models_list, container, false);
+        return inflater.inflate(R.layout.fragment_model_catalogue, container, false);
     }
 
     @Override
@@ -134,7 +135,7 @@ public class ModelCatalogueFragment extends Fragment {
 
     private static final class ModelsAdapter extends ArrayAdapter<Model> {
         ModelsAdapter(Context context) {
-            super(context, R.layout.models_list_item, R.id.model_name);
+            super(context, R.layout.item_model_name, R.id.model_name);
         }
     }
 }

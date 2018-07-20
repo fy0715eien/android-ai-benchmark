@@ -17,4 +17,8 @@
     <string name="ground_truth">Ground truth: </string>
     <string name="top_1_acc">Top 1 accuracy: </string>
     <string name="top_5_acc">Top 5 accuracy: </string>
+    <string name="photos">Photos</string>
+    <string name="albums">Albums</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

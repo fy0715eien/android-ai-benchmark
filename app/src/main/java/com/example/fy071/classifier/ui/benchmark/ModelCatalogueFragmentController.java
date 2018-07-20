@@ -1,4 +1,4 @@
-package com.example.fy071.classifier.ui;
+package com.example.fy071.classifier.ui.benchmark;
 
 
 import android.content.Context;
@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Environment;
 
 import com.example.fy071.classifier.tasks.LoadModelsTask;
+import com.example.fy071.classifier.ui.AbstractViewController;
 import com.example.fy071.classifier.util.Model;
 
 import java.io.File;
@@ -109,7 +110,8 @@ public class ModelCatalogueFragmentController extends AbstractViewController<Mod
     private void extractSingle(File zipFile) {
         try {
             String targetPath = zipFile.getAbsolutePath();
-            File destFile = new File(getExternalModelsRootDirectory(), zipFile.getName());
+            String zipFileWithoutExt = zipFile.getName().split("\\.")[0];
+            File destFile = new File(getExternalModelsRootDirectory(), zipFileWithoutExt);
             if (destFile.exists()) {
                 return;
             }

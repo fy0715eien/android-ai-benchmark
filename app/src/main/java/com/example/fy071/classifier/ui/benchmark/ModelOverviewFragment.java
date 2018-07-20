@@ -1,4 +1,4 @@
-package com.example.fy071.classifier.ui;
+package com.example.fy071.classifier.ui.benchmark;
 
 
 import android.content.Context;
@@ -101,7 +101,7 @@ public class ModelOverviewFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_model, container, false);
+        return inflater.inflate(R.layout.fragment_model_overview, container, false);
     }
 
     @Override
@@ -230,7 +230,7 @@ public class ModelOverviewFragment extends Fragment {
     private static class ModelImagesAdapter extends ArrayAdapter<Bitmap> {
 
         ModelImagesAdapter(Context context) {
-            super(context, R.layout.model_image_layout);
+            super(context, R.layout.item_image);
         }
 
         @NonNull
@@ -238,7 +238,7 @@ public class ModelOverviewFragment extends Fragment {
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
             View view;
             if (convertView == null) {
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.model_image_layout, parent, false);
+                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_image, parent, false);
             } else {
                 view = convertView;
             }

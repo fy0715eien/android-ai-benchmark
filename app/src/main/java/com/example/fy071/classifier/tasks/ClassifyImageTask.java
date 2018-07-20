@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 
-import com.example.fy071.classifier.ui.ModelOverviewFragmentController;
+import com.example.fy071.classifier.ui.benchmark.ModelOverviewFragmentController;
 import com.example.fy071.classifier.util.MeanImage;
 import com.example.fy071.classifier.util.Model;
 import com.qualcomm.qti.snpe.FloatTensor;

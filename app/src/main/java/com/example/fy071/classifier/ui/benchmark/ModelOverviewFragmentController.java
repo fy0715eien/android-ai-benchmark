@@ -1,4 +1,4 @@
-package com.example.fy071.classifier.ui;
+package com.example.fy071.classifier.ui.benchmark;
 
 import android.app.Application;
 import android.graphics.Bitmap;
@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 
 import com.example.fy071.classifier.tasks.ClassifyImageTask;
 import com.example.fy071.classifier.tasks.LoadNetworkTask;
+import com.example.fy071.classifier.ui.AbstractViewController;
 import com.example.fy071.classifier.util.AccuracyCalculator;
 import com.example.fy071.classifier.util.Model;
 import com.qualcomm.qti.snpe.NeuralNetwork;
