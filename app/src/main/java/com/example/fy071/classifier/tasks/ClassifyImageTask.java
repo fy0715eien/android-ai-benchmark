@@ -37,7 +37,6 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         mImage = image;
         mModel = model;
         mPosition = position;
-
     }
 
     @Override
