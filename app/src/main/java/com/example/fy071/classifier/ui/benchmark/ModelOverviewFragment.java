@@ -230,7 +230,7 @@ public class ModelOverviewFragment extends Fragment {
     private static class ModelImagesAdapter extends ArrayAdapter<Bitmap> {
 
         ModelImagesAdapter(Context context) {
-            super(context, R.layout.item_image);
+            super(context, R.layout.item_model_image);
         }
 
         @NonNull
@@ -238,7 +238,7 @@ public class ModelOverviewFragment extends Fragment {
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
             View view;
             if (convertView == null) {
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_image, parent, false);
+                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_model_image, parent, false);
             } else {
                 view = convertView;
             }

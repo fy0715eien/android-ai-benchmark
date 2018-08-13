@@ -43,15 +43,23 @@ import permissions.dispatcher.RuntimePermissions;
 @RuntimePermissions
 public class GalleryFragment extends Fragment {
     private static final String PHOTOS_DIRECTORY = "Photos";
+
     private static final String NEW_PHOTOS_DIRECTORY = "New";
+
     private static final int CAMERA_REQUEST = 1;
+
     static File photosRoot;
+
     static List<File> categoryDirectories;
+
     static List<File> imagePaths;
+
     @BindView(R.id.view_pager_gallery)
     ViewPager viewPager;
+
     @BindView(R.id.tab_layout_gallery)
     TabLayout tabLayout;
+
     private GalleryFragmentPagerAdapter galleryFragmentPagerAdapter;
 
     public GalleryFragment() {
@@ -206,13 +214,13 @@ public class GalleryFragment extends Fragment {
         TAB_ALBUMS
     }
 
-    public class GalleryFragmentPagerAdapter extends FragmentPagerAdapter {
+    class GalleryFragmentPagerAdapter extends FragmentPagerAdapter {
         private String[] tabTitles = {
                 getResources().getString(R.string.photos),
                 getResources().getString(R.string.albums)
         };
 
-        public GalleryFragmentPagerAdapter(FragmentManager fm) {
+        GalleryFragmentPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 

@@ -1,47 +1,33 @@
 package com.example.fy071.classifier.ui.gallery;
 
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
 
 import com.example.fy071.classifier.R;
-
-import java.io.File;
+import com.example.fy071.classifier.util.GlideApp;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
-
-import static com.example.fy071.classifier.ui.gallery.GalleryFragment.imagePaths;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class PhotosFragment extends Fragment {
-    @BindView(R.id.grid_view_photos)
-    GridView photosGridView;
+    @BindView(R.id.rv_photos)
+    RecyclerView recyclerView;
 
-    private CompositeDisposable compositeDisposable;
+    private LayoutInflater layoutInflater;
 
-    private ImagesAdapter imagesAdapter;
+    private GridLayoutManager gridLayoutManager;
 
     public PhotosFragment() {
     }
@@ -49,7 +35,6 @@ public class PhotosFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        compositeDisposable = new CompositeDisposable();
     }
 
     @Override
@@ -62,72 +47,50 @@ public class PhotosFragment extends Fragment {
         ButterKnife.bind(this, view);
         super.onViewCreated(view, savedInstanceState);
 
-        imagesAdapter = new ImagesAdapter(getContext());
-        photosGridView.setAdapter(imagesAdapter);
-        photosGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        layoutInflater = LayoutInflater.from(getActivity());
 
-            }
-        });
+        gridLayoutManager = new GridLayoutManager(getActivity(), 4);
+
+        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.setAdapter(new ImageAdapter());
+
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        loadImages();
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        compositeDisposable.dispose();
-    }
-
-    private void loadImages() {
-        imagesAdapter.clear();
-        Disposable disposable = Observable
-                .fromIterable(imagePaths)
-                .map(new Function<File, Bitmap>() {
-                    @Override
-                    public Bitmap apply(File file) {
-                        return BitmapFactory.decodeFile(file.getAbsolutePath());
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Bitmap>() {
-                    @Override
-                    public void accept(Bitmap bitmap) {
-                        addBitmap(bitmap);
-                    }
-                });
-        compositeDisposable.add(disposable);
-    }
-
-    private void addBitmap(Bitmap bitmap) {
-        imagesAdapter.add(bitmap);
-        imagesAdapter.notifyDataSetChanged();
-    }
-
-    private static class ImagesAdapter extends ArrayAdapter<Bitmap> {
-        ImagesAdapter(Context context) {
-            super(context, R.layout.item_image);
-        }
+    class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.PhotoViewHolder> {
 
         @NonNull
         @Override
-        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-            View view;
-            if (convertView == null) {
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_image, parent, false);
-            } else {
-                view = convertView;
-            }
+        public PhotoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = layoutInflater.inflate(R.layout.item_gallery_image, parent, false);
+            PhotoViewHolder viewHolder = new PhotoViewHolder(view);
+            viewHolder.imageView = view.findViewById(R.id.iv_gallery_image);
+            return viewHolder;
+        }
 
-            final ImageView imageView = ImageView.class.cast(view);
-            imageView.setImageBitmap(getItem(position));
-            return view;
+        @Override
+        public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
+            ViewGroup.LayoutParams params = holder.imageView.getLayoutParams();
+            params.height = gridLayoutManager.getWidth() / gridLayoutManager.getSpanCount();
+
+            GlideApp.with(getContext())
+                    .asBitmap()
+                    .load(GalleryFragment.imagePaths.get(position))
+                    .centerCrop()
+                    .error(R.drawable.ic_broken_image_black_24dp)
+                    .into(holder.imageView);
+        }
+
+        @Override
+        public int getItemCount() {
+            return GalleryFragment.imagePaths.size();
+        }
+
+        class PhotoViewHolder extends RecyclerView.ViewHolder {
+            ImageView imageView;
+
+            PhotoViewHolder(View itemView) {
+                super(itemView);
+            }
         }
     }
 }
