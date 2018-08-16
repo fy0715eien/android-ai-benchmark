@@ -1,6 +1,7 @@
 package com.example.fy071.classifier.ui.gallery;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,12 +16,11 @@ import android.widget.ImageView;
 import com.example.fy071.classifier.R;
 import com.example.fy071.classifier.util.GlideApp;
 
+import java.io.File;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-/**
- * A simple {@link Fragment} subclass.
- */
 public class PhotosFragment extends Fragment {
     @BindView(R.id.rv_photos)
     RecyclerView recyclerView;
@@ -46,14 +46,22 @@ public class PhotosFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         ButterKnife.bind(this, view);
         super.onViewCreated(view, savedInstanceState);
+    }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         layoutInflater = LayoutInflater.from(getActivity());
 
         gridLayoutManager = new GridLayoutManager(getActivity(), 4);
 
         recyclerView.setLayoutManager(gridLayoutManager);
         recyclerView.setAdapter(new ImageAdapter());
-
     }
 
     class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.PhotoViewHolder> {
@@ -68,21 +76,34 @@ public class PhotosFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull final PhotoViewHolder holder, int position) {
             ViewGroup.LayoutParams params = holder.imageView.getLayoutParams();
             params.height = gridLayoutManager.getWidth() / gridLayoutManager.getSpanCount();
 
-            GlideApp.with(getContext())
-                    .asBitmap()
-                    .load(GalleryFragment.imagePaths.get(position))
-                    .centerCrop()
-                    .error(R.drawable.ic_broken_image_black_24dp)
-                    .into(holder.imageView);
+            position = holder.getAdapterPosition();
+
+            if (position != RecyclerView.NO_POSITION) {
+                final File imagePath = GalleryActivity.imagePaths.get(position);
+                holder.imageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(getActivity(), DetailActivity.class);
+                        intent.putExtra(DetailActivity.EXTRA_PHOTO, imagePath.getAbsolutePath());
+                        startActivity(intent);
+                    }
+                });
+                GlideApp.with(getContext())
+                        .asBitmap()
+                        .load(imagePath)
+                        .centerCrop()
+                        .error(R.drawable.ic_broken_image_black_24dp)
+                        .into(holder.imageView);
+            }
         }
 
         @Override
         public int getItemCount() {
-            return GalleryFragment.imagePaths.size();
+            return GalleryActivity.imagePaths.size();
         }
 
         class PhotoViewHolder extends RecyclerView.ViewHolder {

@@ -1,8 +1,8 @@
 package com.example.fy071.classifier.ui.gallery;
 
-
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Service;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -15,10 +15,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 
+import com.example.fy071.classifier.ClassifyService;
 import com.example.fy071.classifier.R;
 
 import java.io.File;
@@ -37,11 +38,10 @@ import permissions.dispatcher.OnShowRationale;
 import permissions.dispatcher.PermissionRequest;
 import permissions.dispatcher.RuntimePermissions;
 
-/**
- * A simple {@link Fragment} subclass.
- */
 @RuntimePermissions
-public class GalleryFragment extends Fragment {
+public class GalleryActivity extends AppCompatActivity {
+    private static final String TAG = "GalleryFragment";
+
     private static final String PHOTOS_DIRECTORY = "Photos";
 
     private static final String NEW_PHOTOS_DIRECTORY = "New";
@@ -54,17 +54,16 @@ public class GalleryFragment extends Fragment {
 
     static List<File> imagePaths;
 
+    ClassifyService classifyService;
+
     @BindView(R.id.view_pager_gallery)
     ViewPager viewPager;
 
     @BindView(R.id.tab_layout_gallery)
     TabLayout tabLayout;
 
-    private GalleryFragmentPagerAdapter galleryFragmentPagerAdapter;
-
-    public GalleryFragment() {
-
-    }
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
 
     @OnClick(R.id.button_camera)
     void startCamera() {
@@ -75,21 +74,17 @@ public class GalleryFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        galleryFragmentPagerAdapter = new GalleryFragmentPagerAdapter(getFragmentManager());
+        setContentView(R.layout.activity_gallery);
+        ButterKnife.bind(this);
 
-    }
+        toolbar.setTitle("Gallery");
+        setSupportActionBar(toolbar);
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_gallery, container, false);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        ButterKnife.bind(this, view);
+        GalleryFragmentPagerAdapter galleryFragmentPagerAdapter = new GalleryFragmentPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(galleryFragmentPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
+
+        classifyService = new ClassifyService();
     }
 
     @Override
@@ -99,12 +94,14 @@ public class GalleryFragment extends Fragment {
         if (photosRoot != null) {
             load();
         }
+        startService(new Intent(GalleryActivity.this, ClassifyService.class));
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        GalleryFragmentPermissionsDispatcher.requestCameraPermissionWithPermissionCheck(this);
+
+        Log.d(TAG, "onResume: " + imagePaths);
     }
 
     @Override
@@ -147,7 +144,7 @@ public class GalleryFragment extends Fragment {
     }
 
     private File getPhotosRoot() {
-        File photosRoot = new File(getContext().getExternalFilesDir(null), PHOTOS_DIRECTORY);
+        File photosRoot = new File(getExternalFilesDir(null), PHOTOS_DIRECTORY);
         if (!photosRoot.exists()) {
             if (photosRoot.mkdir()) {
                 return photosRoot;
@@ -172,12 +169,12 @@ public class GalleryFragment extends Fragment {
 
     @NeedsPermission(Manifest.permission.CAMERA)
     void requestCameraPermission() {
-
+        GalleryActivityPermissionsDispatcher.requestCameraPermissionWithPermissionCheck(this);
     }
 
     @OnShowRationale(Manifest.permission.CAMERA)
     void showCameraRationale(final PermissionRequest request) {
-        new AlertDialog.Builder(getContext())
+        new AlertDialog.Builder(this)
                 .setTitle("Permission required")
                 .setMessage("App needs permission to capture pictures")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -198,7 +195,7 @@ public class GalleryFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        GalleryFragmentPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+        GalleryActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 
     public void saveNewPhoto(File newPhotoFile, Bitmap bitmap) {

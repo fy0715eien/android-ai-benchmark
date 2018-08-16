@@ -21,9 +21,6 @@ import java.io.File;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-/**
- * A simple {@link Fragment} subclass.
- */
 public class AlbumsFragment extends Fragment {
     @BindView(R.id.rv_albums)
     RecyclerView recyclerView;
@@ -71,7 +68,7 @@ public class AlbumsFragment extends Fragment {
             params.height = gridLayoutManager.getWidth() / gridLayoutManager.getSpanCount();
             params.width = params.height;
 
-            File directory = GalleryFragment.categoryDirectories.get(position);
+            File directory = GalleryActivity.categoryDirectories.get(position);
 
             GlideApp.with(getContext())
                     .asBitmap()
@@ -85,7 +82,7 @@ public class AlbumsFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return GalleryFragment.categoryDirectories.size();
+            return GalleryActivity.categoryDirectories.size();
         }
 
         class AlbumViewHolder extends RecyclerView.ViewHolder {

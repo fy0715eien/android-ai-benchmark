@@ -1,4 +1,4 @@
-package com.example.fy071.classifier.ui;
+package com.example.fy071.classifier.ui.benchmark;
 
 public abstract class AbstractViewController<V> {
 

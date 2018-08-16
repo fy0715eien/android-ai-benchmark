@@ -1,5 +1,6 @@
 package com.example.fy071.classifier.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -8,7 +9,7 @@ import android.view.View;
 import com.example.fy071.classifier.R;
 import com.example.fy071.classifier.ui.benchmark.ModelCatalogueFragment;
 import com.example.fy071.classifier.ui.benchmark.ModelOverviewFragment;
-import com.example.fy071.classifier.ui.gallery.GalleryFragment;
+import com.example.fy071.classifier.ui.gallery.GalleryActivity;
 import com.example.fy071.classifier.util.Model;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
@@ -74,7 +75,6 @@ public class MainActivity extends AppCompatActivity implements Drawer.OnDrawerIt
     public void displayModelOverview(final Model model) {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.main_content, ModelOverviewFragment.create(model))
-                .addToBackStack(null)
                 .commit();
     }
 
@@ -86,11 +86,7 @@ public class MainActivity extends AppCompatActivity implements Drawer.OnDrawerIt
     }
 
     public void displayGallery() {
-        toolbar.setTitle("Gallery");
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.main_content, new GalleryFragment())
-                .addToBackStack(null)
-                .commit();
+        startActivity(new Intent(MainActivity.this, GalleryActivity.class));
     }
 
     public void displayAboutActivity() {

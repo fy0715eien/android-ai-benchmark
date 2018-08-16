@@ -19,6 +19,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.gallery.DetailActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity android:name=".ui.gallery.GalleryActivity" />
+
+        <service
+            android:name=".ClassifyService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

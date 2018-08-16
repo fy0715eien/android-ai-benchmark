@@ -6,7 +6,6 @@ import android.os.AsyncTask;
 import android.os.Environment;
 
 import com.example.fy071.classifier.tasks.LoadModelsTask;
-import com.example.fy071.classifier.ui.AbstractViewController;
 import com.example.fy071.classifier.util.Model;
 
 import java.io.File;

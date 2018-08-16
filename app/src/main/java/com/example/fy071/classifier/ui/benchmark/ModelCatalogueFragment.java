@@ -103,7 +103,6 @@ public class ModelCatalogueFragment extends Fragment {
 
     @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
     public void handlePermissions() {
-        Log.i(TAG, "handlePermissions: ");
         mController.startModelsExtraction();
     }
 
