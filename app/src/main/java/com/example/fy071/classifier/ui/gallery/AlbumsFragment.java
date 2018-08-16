@@ -1,12 +1,14 @@
 package com.example.fy071.classifier.ui.gallery;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +24,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class AlbumsFragment extends Fragment {
+    private static final String TAG = "AlbumsFragment";
     @BindView(R.id.rv_albums)
     RecyclerView recyclerView;
 
@@ -68,16 +71,28 @@ public class AlbumsFragment extends Fragment {
             params.height = gridLayoutManager.getWidth() / gridLayoutManager.getSpanCount();
             params.width = params.height;
 
-            File directory = GalleryActivity.categoryDirectories.get(position);
+            final File directory = GalleryActivity.categoryDirectories.get(position);
 
-            GlideApp.with(getContext())
-                    .asBitmap()
-                    .load(directory.listFiles()[0])
-                    .centerCrop()
-                    .error(R.drawable.ic_broken_image_black_24dp)
-                    .into(holder.imageView);
+            if (directory.list().length > 0) {
+                GlideApp.with(getContext())
+                        .asBitmap()
+                        .load(directory.listFiles()[0])
+                        .centerCrop()
+                        .error(R.drawable.ic_broken_image_black_24dp)
+                        .into(holder.imageView);
 
-            holder.textView.setText(directory.getName());
+                holder.imageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(getActivity(), FolderPhotosActivity.class);
+                        Log.d(TAG, "onClick: " + directory);
+                        intent.putExtra(PhotosFragment.EXTRA_DIRECTORY, directory.getAbsolutePath());
+                        startActivity(intent);
+                    }
+                });
+
+                holder.textView.setText(directory.getName());
+            }
         }
 
         @Override

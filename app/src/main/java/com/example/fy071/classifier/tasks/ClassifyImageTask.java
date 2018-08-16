@@ -60,6 +60,7 @@ public class ClassifyImageTask extends AsyncTask<Bitmap, Void, String[]> {
         inputs.put(mModel.inputLayer, tensor);
 
         final Map<String, FloatTensor> outputs = mNeuralNetwork.execute(inputs);
+
         for (Map.Entry<String, FloatTensor> output : outputs.entrySet()) {
             if (output.getKey().equals(mModel.outputLayer)) {
                 for (Pair<Integer, Float> pair : topK(TOP_K, output.getValue())) {

@@ -27,7 +27,9 @@
         <service
             android:name=".ClassifyService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity android:name=".ui.gallery.FolderPhotosActivity"></activity>
     </application>
 
 </manifest>

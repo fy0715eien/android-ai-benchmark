@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.IBinder;
 import android.util.Log;
+import android.util.Pair;
 
 import com.example.fy071.classifier.util.MeanImage;
 import com.example.fy071.classifier.util.Model;
@@ -24,7 +25,6 @@ import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -233,10 +233,9 @@ public class ClassifyService extends Service {
 
             for (Map.Entry<String, FloatTensor> output : outputs.entrySet()) {
                 if (output.getKey().equals(innerModel.outputLayer)) {
-                    final float[] array = new float[tensor.getSize()];
-                    tensor.read(array, 0, array.length);
-                    int trueIndex = top(array);
-                    label = getGroundTruth(trueIndex);
+                    for (Pair<Integer, Float> pair : topK(1, output.getValue())) {
+                        label = innerModel.labels[pair.first];
+                    }
                 }
             }
 
@@ -275,10 +274,29 @@ public class ClassifyService extends Service {
             }
         }
 
-        private int top(float[] array) {
+        private Pair<Integer, Float>[] topK(int k, FloatTensor tensor) {
+            final float[] array = new float[tensor.getSize()];
+            tensor.read(array, 0, array.length);
+
+            final boolean[] selected = new boolean[tensor.getSize()];
+            final Pair<Integer, Float>[] topK = new Pair[k];
+            int count = 0;
+            while (count < k) {
+                final int index = top(array, selected);
+                selected[index] = true;
+                topK[count] = new Pair<>(index, array[index]);
+                count++;
+            }
+            return topK;
+        }
+
+        private int top(float[] array, boolean[] selected) {
             int index = 0;
             float max = -1.f;
             for (int i = 0; i < array.length; i++) {
+                if (selected[i]) {
+                    continue;
+                }
                 if (array[i] > max) {
                     max = array[i];
                     index = i;
@@ -331,12 +349,18 @@ public class ClassifyService extends Service {
 
         private void moveImageToDirectory() {
             try {
-                Path fromPath = Paths.get(imagePath.getAbsolutePath());
                 File photosDir = classifyServiceWeakReference.get().getExternalFilesDir("Photos");
+
+                Path fromPath = Paths.get(imagePath.getAbsolutePath());
                 String fileName = imagePath.getName();
+
                 File categoryDir = new File(photosDir, category);
+                if (!categoryDir.exists() && !categoryDir.mkdir()) {
+                    throw new IOException("Can not find category directory");
+                }
 
                 Path toPath = Paths.get(new File(categoryDir, fileName).getAbsolutePath());
+
 
                 Files.move(fromPath, toPath);
             } catch (Exception e) {
